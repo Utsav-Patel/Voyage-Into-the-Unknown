@@ -1,7 +1,10 @@
+from constants import INF
+
+
 class Node:
     def __init__(self):
-        g: float
-        h: float
-        f: float
-        is_visited: bool
-        is_blocked: bool
+        self.g = INF
+        self.h = INF
+        self.f = INF
+        self.is_visited = False
+        self.is_blocked = False
