@@ -11,3 +11,6 @@ class Maze:
             for column_num in range(self.num_cols):
                 lst.append(Node())
             self.maze.append(lst)
+
+    def __str__(self):
+        return 'NUmber of columns: ' + self.num_cols + '\nNumber of rows: ' + self.num_rows + '\nMaze: ' + self.maze
