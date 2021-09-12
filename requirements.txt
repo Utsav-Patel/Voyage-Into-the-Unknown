@@ -7,3 +7,4 @@ scikit-learn==0.19.2
 simplegeneric==0.8.1
 urllib3==1.23
 wincertstore==0.2
+numpy==1.21.2
