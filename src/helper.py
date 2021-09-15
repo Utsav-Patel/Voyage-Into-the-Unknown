@@ -2,6 +2,7 @@ import numpy as np
 from src.Maze import Maze
 from queue import Queue
 from queue import PriorityQueue
+from constants import NUM_COLS, NUM_ROWS
 
 
 def generate_grid_manually():
@@ -18,9 +19,38 @@ def generate_grid_manually():
     return array
 
 
-def generate_grid_with_probability_p():
+def generate_grid_with_probability_p(p):
     from constants import NUM_COLS, NUM_ROWS
-    return np.zeros((NUM_ROWS, NUM_COLS))
+    randomly_generated_array = np.random.uniform(low=0.0, high=1.0, size=NUM_ROWS * NUM_COLS).reshape(NUM_ROWS, NUM_COLS)
+    randomly_generated_array[0][0] = 0
+    randomly_generated_array[NUM_ROWS-1][NUM_COLS-1] = 0
+    randomly_generated_array[randomly_generated_array < (1-p)] = 0
+    randomly_generated_array[randomly_generated_array >= (1-p)] = 1
+    return randomly_generated_array
+
+
+def is_path_exist_from_source_to_goal(maze_array: np.array, start_pos: tuple, goal_pos: tuple):
+    x = [0, 1, 0, -1]
+    y = [1, 0, -1, 0]
+
+    q = Queue()
+    q.put(start_pos)
+    visited_nodes = set()
+
+    while not q.empty():
+        current_node = q.get()
+        if current_node == goal_pos:
+            return True
+        visited_nodes.add(current_node)
+
+        for ind in range(len(x)):
+            neighbour = (current_node[0] + x[ind], current_node[1] + y[ind])
+            if check(neighbour, NUM_COLS, NUM_ROWS) and (neighbour not in visited_nodes) \
+                    and (maze_array[neighbour[0]][neighbour[1]] == 0):
+                q.put(neighbour)
+                visited_nodes.add(neighbour)
+
+    return False
 
 
 def manhattan_distance(pos1: tuple, pos2: tuple):
@@ -62,22 +92,6 @@ def chebyshev_distance(pos1: tuple, pos2: tuple):
     return distance
 
 
-def g_function():
-    """
-    Find and return appropriate function to compute shortest distance from the start (source).
-    :return: G Function
-    """
-    from constants import FUNCTION_FOR_G
-    if FUNCTION_FOR_G == 'manhattan':
-        return manhattan_distance
-    elif FUNCTION_FOR_G == 'euclidean':
-        return euclidean_distance
-    elif FUNCTION_FOR_G == 'chebychev':
-        return chebyshev_distance
-    else:
-        raise Exception("Function for G is not exist. Please choose from manhattan, euclidean, or chebychev")
-
-
 def h_function():
     """
     Find and return appropriate function to compute heuristic distance from the target (goal).
@@ -107,35 +121,22 @@ def check(pos: tuple, num_cols: int, num_rows: int):
     return False
 
 
-def compute_heuristics(maze: Maze, start_pos: tuple, h_func):
+def compute_heuristics(maze: Maze, goal_pos: tuple, h_func):
     """
     Compute Heuristic for the current maze
     :param maze: Maze
-    :param start_pos: This is Goal state where we want to reach
+    :param goal_pos: This is the goal state where we want to reach
     :param h_func: Heuristic function we want to use
     :return: None as we are updating in the same maze object
     """
-    x = [0, 1, 0, -1]
-    y = [1, 0, -1, 0]
 
-    maze.maze[start_pos[0]][start_pos[1]].h = 0
-
-    from queue import Queue
-    q = Queue()
-    q.put(start_pos)
-
-    while not q.empty():
-        current_node = q.get()
-        for val in range(len(x)):
-            neighbour = (current_node[0] + x[val], current_node[1] + y[val])
-            if (check(neighbour, maze.num_cols, maze.num_rows)) and \
-                    (maze.maze[current_node[0]][current_node[1]].h + 1 < maze.maze[neighbour[0]][neighbour[1]].h) \
-                    and (not maze.maze[neighbour[0]][neighbour[1]].is_blocked):
-                maze.maze[neighbour[0]][neighbour[1]].h = maze.maze[current_node[0]][current_node[1]].h + 1
-                q.put(neighbour)
+    for row in range(NUM_ROWS):
+        for col in range(NUM_COLS):
+            if not maze.maze[row][col].is_blocked:
+                maze.maze[row][col].h = h_func((row, col), goal_pos)
 
 
-def compute_g(maze: Maze, start_pos: tuple, g_func):
+def compute_g(maze: Maze, start_pos: tuple):
     """
     Compute Shortest distance from starting position for the given maze
     :param maze: Maze
@@ -168,12 +169,12 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
     :param maze: Maze object
     :param start_pos: starting position of the maze from where we want to start A* search
     :param goal_pos: Goal state (position) where we want to reach
-    :return:
+    :return: Returning the path from goal_pos to start_pos if it exists
     """
     x = [0, 1, 0, -1]
     y = [1, 0, -1, 0]
 
-    compute_g(maze, start_pos, g_function())
+    compute_g(maze, start_pos)
 
     for row in range(maze.num_rows):
         for col in range(maze.num_cols):
