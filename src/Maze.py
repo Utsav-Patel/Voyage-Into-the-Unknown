@@ -13,4 +13,15 @@ class Maze:
             self.maze.append(lst)
 
     def __str__(self):
-        return 'NUmber of columns: ' + self.num_cols + '\nNumber of rows: ' + self.num_rows + '\nMaze: ' + self.maze
+        return 'NUmber of columns: ' + str(self.num_cols) + '\nNumber of rows: ' + str(self.num_rows) \
+               + '\nMaze: ' + str(self.maze)
+
+    def reset(self):
+        for row in range(self.num_rows):
+            for col in range(self.num_cols):
+                self.maze[row][col].reset()
+
+    def reset_except_h(self):
+        for row in range(self.num_rows):
+            for col in range(self.num_cols):
+                self.maze[row][col].reset_except_h()
