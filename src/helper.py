@@ -134,6 +134,18 @@ def compute_heuristics(maze: Maze, goal_pos: tuple, h_func):
                 maze.maze[row][col].h = h_func((row, col), goal_pos)
 
 
+def create_maze_array_from_maze(maze: Maze):
+    num_rows = len(maze.maze)
+    num_cols = len(maze.maze[0])
+
+    maze_array = np.zeros((num_rows, num_cols))
+    for row in range(num_rows):
+        for col in range(num_cols):
+            if maze.maze[row][col].is_blocked:
+                maze_array[row][col] = 1
+
+    return maze_array
+
 def compute_g(maze: Maze, start_pos: tuple):
     """
     Compute Shortest distance from starting position for the given maze
@@ -185,17 +197,19 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
                          maze.maze[start_pos[0]][start_pos[1]].g), start_pos, start_pos))
 
     parents = dict()
+    num_explored_nodes = 0
 
     while not priority_queue.empty():
         current_node = priority_queue.get()
         if current_node[1] in visited_nodes:
             continue
+        num_explored_nodes += 1
 
         parents[current_node[1]] = current_node[2]
         visited_nodes.add(current_node[1])
 
         if current_node[1] == goal_pos:
-            return parents
+            return parents, num_explored_nodes
 
         for val in range(len(X)):
             neighbour = (current_node[1][0] + X[val], current_node[1][1] + Y[val])
@@ -209,18 +223,20 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
                 priority_queue.put(((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
                                      maze.maze[neighbour[0]][neighbour[1]].g), neighbour, current_node[1]))
 
-    return parents
+    return parents, num_explored_nodes
 
 
 def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: tuple, goal_pos: tuple):
 
     final_paths = list()
+    total_explored_nodes = 0
 
     while True:
-        parents = astar_search(maze, start_pos, goal_pos)
+        parents, num_explored_nodes = astar_search(maze, start_pos, goal_pos)
+        total_explored_nodes += num_explored_nodes
 
         if goal_pos not in parents:
-            return list()
+            return list(), total_explored_nodes
 
         cur_pos = goal_pos
         children = dict()
@@ -249,11 +265,10 @@ def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: t
         final_paths.append(current_path)
 
         if cur_pos == goal_pos:
-            return final_paths
+            return final_paths, total_explored_nodes
         else:
             maze.maze[children[cur_pos][0]][children[cur_pos][1]].is_blocked = True
             for ind in range(NUM_ROWS):
                 for ind2 in range(NUM_COLS):
                     maze.maze[ind][ind2].g = INF
             start_pos = cur_pos
-
