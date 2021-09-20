@@ -73,16 +73,19 @@ for probability_of_having_block in np.linspace(0.00, 0.33, 10):
 
 
 fig, axs = plt.subplots(2, 2)
+title_font_size=10
 axs[0, 0].plot(values_of_probabilities, avg_trajectory_lengths)
-axs[0, 0].set_title('Density vs Average Trajectory Length')
-axs[0, 1].plot(values_of_probabilities, avg_length_of_trajectory_by_shortest_path_in_final_discovered_gridworld, 'tab:orange')
-axs[0, 1].set_title('Density vs Average (Length of Trajectory / Length of Shortest Path in Final Discovered Gridworld)')
+axs[0, 0].set_title('Density vs Average Trajectory Length', fontsize=title_font_size)
+axs[0, 1].plot(values_of_probabilities, avg_length_of_trajectory_by_shortest_path_in_final_discovered_gridworld,
+               'tab:orange')
+axs[0, 1].set_title('Density vs Average (Length of (Trajectory / Shortest Path in Final Discovered Gridworld))',
+                    fontsize=title_font_size)
 axs[1, 0].plot(values_of_probabilities,
                avg_shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridworld, 'tab:green')
-axs[1, 0].set_title('Density vs Average (Length of Shortest Path in Final Discovered Gridworld / Length of Shortest '
-                    'Path in Full Gridworld)')
+axs[1, 0].set_title('Density vs Average (Length of Shortest Path in (Final Discovered / Full ) Gridworld',
+                    fontsize=title_font_size)
 axs[1, 1].plot(values_of_probabilities, avg_num_cells_processed_by_repeated_astar, 'tab:red')
-axs[1, 1].set_title('Density vs Average Number of Cells Processed by Repeated A*')
+axs[1, 1].set_title('Density vs Average Number of Cells Processed by Repeated A*', fontsize=title_font_size)
 
 # for ax in axs.flat:
 #     ax.set(xlabel='Density', ylabel='y-label')

@@ -1,4 +1,5 @@
 import numpy as np
+import datetime
 from src.Maze import Maze
 from queue import Queue
 from queue import PriorityQueue
@@ -10,22 +11,25 @@ def generate_grid_manually():
     This is the function to generate  grid manually. This is helpful for the initial testing and problem 1.
     :return: Manually generated numpy array.
     """
-    array = np.zeros((8,8))
+    array = np.zeros((8, 8))
+    array[0][7] = 1
+    array[1][6] = 1
+    array[2][5] = 1
     array[3][5] = 1
     array[4][5] = 1
     array[5][5] = 1
     array[6][5] = 1
-    array[7][5] = 1
+    # array[7][5] = 1
     return array
-
 
 def generate_grid_with_probability_p(p):
     from constants import NUM_COLS, NUM_ROWS
-    randomly_generated_array = np.random.uniform(low=0.0, high=1.0, size=NUM_ROWS * NUM_COLS).reshape(NUM_ROWS, NUM_COLS)
+    randomly_generated_array = np.random.uniform(low=0.0, high=1.0, size=NUM_ROWS * NUM_COLS).reshape(NUM_ROWS,
+                                                                                                      NUM_COLS)
     randomly_generated_array[STARTING_POSITION_OF_AGENT[0]][STARTING_POSITION_OF_AGENT[1]] = 0
     randomly_generated_array[GOAL_POSITION_OF_AGENT[0]][GOAL_POSITION_OF_AGENT[1]] = 0
-    randomly_generated_array[randomly_generated_array < (1-p)] = 0
-    randomly_generated_array[randomly_generated_array >= (1-p)] = 1
+    randomly_generated_array[randomly_generated_array < (1 - p)] = 0
+    randomly_generated_array[randomly_generated_array >= (1 - p)] = 1
     return randomly_generated_array
 
 
@@ -146,6 +150,7 @@ def create_maze_array_from_maze(maze: Maze):
 
     return maze_array
 
+
 def compute_g(maze: Maze, start_pos: tuple):
     """
     Compute Shortest distance from starting position for the given maze
@@ -215,10 +220,11 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
             neighbour = (current_node[1][0] + X[val], current_node[1][1] + Y[val])
             if check(neighbour, maze.num_cols, maze.num_rows) and \
                     (not maze.maze[neighbour[0]][neighbour[1]].is_blocked) and (neighbour not in visited_nodes) \
-                    and (maze.maze[neighbour[0]][neighbour[1]].g > maze.maze[current_node[1][0]][current_node[1][1]].g + 1):
-
+                    and (
+                    maze.maze[neighbour[0]][neighbour[1]].g > maze.maze[current_node[1][0]][current_node[1][1]].g + 1):
                 maze.maze[neighbour[0]][neighbour[1]].g = maze.maze[current_node[1][0]][current_node[1][1]].g + 1
-                maze.maze[neighbour[0]][neighbour[1]].f = maze.maze[neighbour[0]][neighbour[1]].g + maze.maze[neighbour[0]][neighbour[1]].h
+                maze.maze[neighbour[0]][neighbour[1]].f = maze.maze[neighbour[0]][neighbour[1]].g + \
+                                                          maze.maze[neighbour[0]][neighbour[1]].h
 
                 priority_queue.put(((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
                                      maze.maze[neighbour[0]][neighbour[1]].g), neighbour, current_node[1]))
@@ -226,8 +232,9 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
     return parents, num_explored_nodes
 
 
-def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: tuple, goal_pos: tuple):
-
+def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: tuple, goal_pos: tuple,
+                                  is_field_of_view_explored: bool = True, backtrack_length: int = 0):
+    starting_time = datetime.datetime.now()
     final_paths = list()
     total_explored_nodes = 0
 
@@ -236,7 +243,7 @@ def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: t
         total_explored_nodes += num_explored_nodes
 
         if goal_pos not in parents:
-            return list(), total_explored_nodes
+            return list(), total_explored_nodes, 0
 
         cur_pos = goal_pos
         children = dict()
@@ -253,21 +260,33 @@ def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: t
         while cur_pos != children[cur_pos]:
 
             # Explore the field of view and update the blocked nodes
-            for ind in range(len(X)):
-                neighbour = (cur_pos[0] + X[ind], cur_pos[1] + Y[ind])
-                if (check(neighbour, NUM_COLS, NUM_ROWS)) and (maze_array[neighbour[0]][neighbour[1]] == 1):
-                    maze.maze[neighbour[0]][neighbour[1]].is_blocked = True
+            if is_field_of_view_explored:
+                for ind in range(len(X)):
+                    neighbour = (cur_pos[0] + X[ind], cur_pos[1] + Y[ind])
+                    if (check(neighbour, NUM_COLS, NUM_ROWS)) and (maze_array[neighbour[0]][neighbour[1]] == 1):
+                        maze.maze[neighbour[0]][neighbour[1]].is_blocked = True
 
             if maze_array[children[cur_pos][0]][children[cur_pos][1]] == 1:
                 break
             cur_pos = children[cur_pos]
             current_path.append(cur_pos)
-        final_paths.append(current_path)
 
         if cur_pos == goal_pos:
-            return final_paths, total_explored_nodes
+            final_paths.append(current_path)
+            end_time = datetime.datetime.now()
+            return final_paths, total_explored_nodes, (end_time - starting_time).total_seconds()
         else:
+
             maze.maze[children[cur_pos][0]][children[cur_pos][1]].is_blocked = True
+            num_backtrack = min(len(current_path) - 1, backtrack_length)
+            cur_pos = current_path[-1]
+
+            while num_backtrack > 0:
+                cur_pos = parents[cur_pos]
+                current_path.append(cur_pos)
+                num_backtrack -= 1
+
+            final_paths.append(current_path)
             for ind in range(NUM_ROWS):
                 for ind2 in range(NUM_COLS):
                     maze.maze[ind][ind2].g = INF
