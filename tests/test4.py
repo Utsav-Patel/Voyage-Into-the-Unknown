@@ -18,12 +18,18 @@ avg_length_of_trajectory_by_shortest_path_in_final_discovered_gridworld = []
 avg_shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridworld = []
 avg_num_cells_processed_by_repeated_astar = []
 
+start_value_of_probability = 0.0
+end_value_of_probability = 1.0
+num_uniform_samples = 101
+num_times_run_for_each_probability = 1000
+
 
 def avg(lst: list):
     return sum(lst) / len(lst)
 
 
-for probability_of_having_block in np.linspace(0.00, 0.33, 10):
+for probability_of_having_block in np.linspace(start_value_of_probability, min(0.33, end_value_of_probability),
+                                               num_uniform_samples):
 
     values_of_probabilities.append(probability_of_having_block)
     print('Running for ', probability_of_having_block)
@@ -34,7 +40,7 @@ for probability_of_having_block in np.linspace(0.00, 0.33, 10):
     num_cells_processed_by_repeated_astar = []
 
     run_num = 0
-    while run_num < 30:
+    while run_num < num_times_run_for_each_probability:
         maze_array = generate_grid_with_probability_p(probability_of_having_block)
         final_discovered_maze.reset_except_h()
         # print(maze_array)
@@ -64,7 +70,7 @@ for probability_of_having_block in np.linspace(0.00, 0.33, 10):
         shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridworld.append(distance_from_start_to_goal_on_discovered_grid / distance_from_start_to_goal_on_full_grid)
         num_cells_processed_by_repeated_astar.append(total_explored_nodes)
 
-    assert run_num == 30
+    assert run_num == num_times_run_for_each_probability
 
     avg_trajectory_lengths.append(avg(trajectory_lengths))
     avg_length_of_trajectory_by_shortest_path_in_final_discovered_gridworld.append(avg(length_of_trajectory_by_shortest_path_in_final_discovered_gridworld))

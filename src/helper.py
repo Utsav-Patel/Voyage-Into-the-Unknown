@@ -2,8 +2,8 @@ import numpy as np
 import datetime
 from src.Maze import Maze
 from queue import Queue
-from queue import PriorityQueue
 from constants import NUM_COLS, NUM_ROWS, INF, STARTING_POSITION_OF_AGENT, GOAL_POSITION_OF_AGENT, X, Y
+from sortedcontainers import SortedSet
 
 
 def generate_grid_manually():
@@ -21,6 +21,7 @@ def generate_grid_manually():
     array[6][5] = 1
     # array[7][5] = 1
     return array
+
 
 def generate_grid_with_probability_p(p):
     from constants import NUM_COLS, NUM_ROWS
@@ -184,33 +185,24 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
     :param goal_pos: Goal state (position) where we want to reach
     :return: Returning the path from goal_pos to start_pos if it exists
     """
-    import random
-
-    # compute_g(maze, start_pos)
-
-    # for row in range(maze.num_rows):
-    #     for col in range(maze.num_cols):
-    #         maze.maze[row][col].f = maze.maze[row][col].g + maze.maze[row][col].h
 
     visited_nodes = set()
-    priority_queue = PriorityQueue()
+    sorted_set = SortedSet()
 
     maze.maze[start_pos[0]][start_pos[1]].g = 0
     maze.maze[start_pos[0]][start_pos[1]].f = maze.maze[start_pos[0]][start_pos[1]].h
 
-    priority_queue.put(((maze.maze[start_pos[0]][start_pos[1]].f, maze.maze[start_pos[0]][start_pos[1]].h,
-                         maze.maze[start_pos[0]][start_pos[1]].g), start_pos, start_pos))
+    visited_nodes.add(start_pos)
+    sorted_set.add(((maze.maze[start_pos[0]][start_pos[1]].f, maze.maze[start_pos[0]][start_pos[1]].h,
+                     maze.maze[start_pos[0]][start_pos[1]].g), start_pos))
 
     parents = dict()
+    parents[start_pos] = start_pos
     num_explored_nodes = 0
 
-    while not priority_queue.empty():
-        current_node = priority_queue.get()
-        if current_node[1] in visited_nodes:
-            continue
+    while sorted_set.__len__() != 0:
+        current_node = sorted_set.pop(index=0)
         num_explored_nodes += 1
-
-        parents[current_node[1]] = current_node[2]
         visited_nodes.add(current_node[1])
 
         if current_node[1] == goal_pos:
@@ -218,16 +210,28 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
 
         for val in range(len(X)):
             neighbour = (current_node[1][0] + X[val], current_node[1][1] + Y[val])
-            if check(neighbour, maze.num_cols, maze.num_rows) and \
-                    (not maze.maze[neighbour[0]][neighbour[1]].is_blocked) and (neighbour not in visited_nodes) \
-                    and (
-                    maze.maze[neighbour[0]][neighbour[1]].g > maze.maze[current_node[1][0]][current_node[1][1]].g + 1):
-                maze.maze[neighbour[0]][neighbour[1]].g = maze.maze[current_node[1][0]][current_node[1][1]].g + 1
-                maze.maze[neighbour[0]][neighbour[1]].f = maze.maze[neighbour[0]][neighbour[1]].g + \
-                                                          maze.maze[neighbour[0]][neighbour[1]].h
-
-                priority_queue.put(((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
-                                     maze.maze[neighbour[0]][neighbour[1]].g), neighbour, current_node[1]))
+            if check(neighbour, maze.num_cols, maze.num_rows) and (not maze.maze[neighbour[0]][neighbour[1]].is_blocked):
+                if neighbour not in visited_nodes:
+                    maze.maze[neighbour[0]][neighbour[1]].g = maze.maze[current_node[1][0]][current_node[1][1]].g + 1
+                    maze.maze[neighbour[0]][neighbour[1]].f = maze.maze[neighbour[0]][neighbour[1]].g + \
+                                                              maze.maze[neighbour[0]][neighbour[1]].h
+                    visited_nodes.add(neighbour)
+                    sorted_set.add(((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
+                                     maze.maze[neighbour[0]][neighbour[1]].g), neighbour))
+                    parents[neighbour] = current_node[1]
+                else:
+                    neighbour_g = maze.maze[current_node[1][0]][current_node[1][1]].g + 1
+                    neighbour_f = maze.maze[neighbour[0]][neighbour[1]].h + neighbour_g
+                    if neighbour_f < maze.maze[neighbour[0]][neighbour[1]].f:
+                        sorted_set.remove(
+                            ((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
+                              maze.maze[neighbour[0]][neighbour[1]].g), neighbour))
+                        maze.maze[neighbour[0]][neighbour[1]].g = neighbour_g
+                        maze.maze[neighbour[0]][neighbour[1]].f = neighbour_f
+                        sorted_set.add(
+                            ((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
+                              maze.maze[neighbour[0]][neighbour[1]].g), neighbour))
+                        parents[neighbour] = current_node[1]
 
     return parents, num_explored_nodes
 
@@ -287,7 +291,4 @@ def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: t
                 num_backtrack -= 1
 
             final_paths.append(current_path)
-            for ind in range(NUM_ROWS):
-                for ind2 in range(NUM_COLS):
-                    maze.maze[ind][ind2].g = INF
             start_pos = cur_pos

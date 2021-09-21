@@ -9,3 +9,4 @@ urllib3==1.23
 wincertstore==0.2
 numpy==1.21.2
 matplotlib==3.4.3
+sortedcontainers==2.4.0
