@@ -1,7 +1,7 @@
 import numpy as np
-import datetime
+import random
 from src.Maze import Maze
-from queue import Queue
+from queue import Queue, PriorityQueue
 from constants import NUM_COLS, NUM_ROWS, INF, STARTING_POSITION_OF_AGENT, GOAL_POSITION_OF_AGENT, X, Y
 from sortedcontainers import SortedSet
 
@@ -139,15 +139,17 @@ def compute_heuristics(maze: Maze, goal_pos: tuple, h_func):
                 maze.maze[row][col].h = h_func((row, col), goal_pos)
 
 
-def create_maze_array_from_maze(maze: Maze):
-    num_rows = len(maze.maze)
-    num_cols = len(maze.maze[0])
-
-    maze_array = np.zeros((num_rows, num_cols))
-    for row in range(num_rows):
-        for col in range(num_cols):
-            if maze.maze[row][col].is_blocked:
-                maze_array[row][col] = 1
+def create_maze_array_from_paths(paths: list, maze: Maze, is_field_of_view_explored: bool = True):
+    maze_array = np.ones((NUM_ROWS, NUM_COLS))
+    for path in paths:
+        for node in path:
+            if not maze.maze[node[0]][node[1]].is_blocked:
+                maze_array[node[0]][node[1]] = 0
+            if is_field_of_view_explored:
+                for ind in range(len(X)):
+                    neighbour = (node[0] + X[ind], node[1] + Y[ind])
+                    if check(neighbour, NUM_COLS, NUM_ROWS) and (not maze.maze[neighbour[0]][neighbour[1]].is_blocked):
+                        maze_array[neighbour[0]][neighbour[1]] = 0
 
     return maze_array
 
@@ -188,36 +190,41 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
 
     visited_nodes = set()
     sorted_set = SortedSet()
+    node_to_random_number_mapping = dict()
+    parents = dict()
 
     maze.maze[start_pos[0]][start_pos[1]].g = 0
     maze.maze[start_pos[0]][start_pos[1]].f = maze.maze[start_pos[0]][start_pos[1]].h
 
+    node_to_random_number_mapping[start_pos] = random.uniform(0, 1)
     visited_nodes.add(start_pos)
     sorted_set.add(((maze.maze[start_pos[0]][start_pos[1]].f, maze.maze[start_pos[0]][start_pos[1]].h,
-                     maze.maze[start_pos[0]][start_pos[1]].g), start_pos))
+                     maze.maze[start_pos[0]][start_pos[1]].g, node_to_random_number_mapping[start_pos]), start_pos))
 
-    parents = dict()
     parents[start_pos] = start_pos
+
     num_explored_nodes = 0
 
     while sorted_set.__len__() != 0:
         current_node = sorted_set.pop(index=0)
         num_explored_nodes += 1
-        visited_nodes.add(current_node[1])
 
         if current_node[1] == goal_pos:
             return parents, num_explored_nodes
 
         for val in range(len(X)):
             neighbour = (current_node[1][0] + X[val], current_node[1][1] + Y[val])
-            if check(neighbour, maze.num_cols, maze.num_rows) and (not maze.maze[neighbour[0]][neighbour[1]].is_blocked):
+            if check(neighbour, maze.num_cols, maze.num_rows) and (
+                    not maze.maze[neighbour[0]][neighbour[1]].is_blocked):
                 if neighbour not in visited_nodes:
                     maze.maze[neighbour[0]][neighbour[1]].g = maze.maze[current_node[1][0]][current_node[1][1]].g + 1
                     maze.maze[neighbour[0]][neighbour[1]].f = maze.maze[neighbour[0]][neighbour[1]].g + \
                                                               maze.maze[neighbour[0]][neighbour[1]].h
+                    node_to_random_number_mapping[neighbour] = random.uniform(0, 1)
                     visited_nodes.add(neighbour)
                     sorted_set.add(((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
-                                     maze.maze[neighbour[0]][neighbour[1]].g), neighbour))
+                                     maze.maze[neighbour[0]][neighbour[1]].g, node_to_random_number_mapping[neighbour]),
+                                    neighbour))
                     parents[neighbour] = current_node[1]
                 else:
                     neighbour_g = maze.maze[current_node[1][0]][current_node[1][1]].g + 1
@@ -225,29 +232,70 @@ def astar_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
                     if neighbour_f < maze.maze[neighbour[0]][neighbour[1]].f:
                         sorted_set.remove(
                             ((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
-                              maze.maze[neighbour[0]][neighbour[1]].g), neighbour))
+                              maze.maze[neighbour[0]][neighbour[1]].g, node_to_random_number_mapping[neighbour]),
+                             neighbour))
                         maze.maze[neighbour[0]][neighbour[1]].g = neighbour_g
                         maze.maze[neighbour[0]][neighbour[1]].f = neighbour_f
+                        node_to_random_number_mapping[neighbour] = random.uniform(0, 1)
                         sorted_set.add(
                             ((maze.maze[neighbour[0]][neighbour[1]].f, maze.maze[neighbour[0]][neighbour[1]].h,
-                              maze.maze[neighbour[0]][neighbour[1]].g), neighbour))
+                              maze.maze[neighbour[0]][neighbour[1]].g, node_to_random_number_mapping[neighbour]),
+                             neighbour))
                         parents[neighbour] = current_node[1]
 
     return parents, num_explored_nodes
 
 
-def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: tuple, goal_pos: tuple,
-                                  is_field_of_view_explored: bool = True, backtrack_length: int = 0):
-    starting_time = datetime.datetime.now()
+def bfs_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
+    visited_nodes = set()
+    queue = PriorityQueue()
+    parents = dict()
+
+    maze.maze[start_pos[0]][start_pos[1]].g = 0
+
+    visited_nodes.add(start_pos)
+    queue.put(((maze.maze[start_pos[0]][start_pos[1]].g, random.uniform(0, 1)), start_pos))
+
+    parents[start_pos] = start_pos
+    num_explored_nodes = 0
+
+    while not queue.empty():
+        current_node = queue.get()
+        num_explored_nodes += 1
+
+        if current_node[1] == goal_pos:
+            return parents, num_explored_nodes
+
+        for val in range(len(X)):
+            neighbour = (current_node[1][0] + X[val], current_node[1][1] + Y[val])
+            if check(neighbour, maze.num_cols, maze.num_rows) and (
+                    not maze.maze[neighbour[0]][neighbour[1]].is_blocked):
+                if neighbour not in visited_nodes:
+                    maze.maze[neighbour[0]][neighbour[1]].g = maze.maze[current_node[1][0]][current_node[1][1]].g + 1
+                    visited_nodes.add(neighbour)
+                    queue.put(((maze.maze[neighbour[0]][neighbour[1]].g, random.uniform(0, 1)), neighbour))
+                    parents[neighbour] = current_node[1]
+
+    return parents, num_explored_nodes
+
+
+def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_pos: tuple,
+                     is_field_of_view_explored: bool = True, backtrack_length: int = 0, algorithm: str = 'astar'):
     final_paths = list()
     total_explored_nodes = 0
 
     while True:
-        parents, num_explored_nodes = astar_search(maze, start_pos, goal_pos)
+        if algorithm == 'astar':
+            parents, num_explored_nodes = astar_search(maze, start_pos, goal_pos)
+        elif algorithm == 'bfs':
+            parents, num_explored_nodes = bfs_search(maze, start_pos, goal_pos)
+        else:
+            raise Exception("algorithm should be either astar or bfs")
+
         total_explored_nodes += num_explored_nodes
 
         if goal_pos not in parents:
-            return list(), total_explored_nodes, 0
+            return list(), total_explored_nodes
 
         cur_pos = goal_pos
         children = dict()
@@ -277,8 +325,7 @@ def repeated_forward_astar_search(maze: Maze, maze_array: np.array, start_pos: t
 
         if cur_pos == goal_pos:
             final_paths.append(current_path)
-            end_time = datetime.datetime.now()
-            return final_paths, total_explored_nodes, (end_time - starting_time).total_seconds()
+            return final_paths, total_explored_nodes
         else:
 
             maze.maze[children[cur_pos][0]][children[cur_pos][1]].is_blocked = True

@@ -5,14 +5,14 @@ This file contains the experiment mentioned in the problem 8.
 import numpy as np
 import matplotlib.pyplot as plt
 from src.Maze import Maze
-from src.helper import generate_grid_with_probability_p, repeated_forward_astar_search, manhattan_distance, \
-    compute_heuristics, length_of_path_from_source_to_goal, create_maze_array_from_maze
+from src.helper import generate_grid_with_probability_p, repeated_forward, manhattan_distance, \
+    compute_heuristics, length_of_path_from_source_to_goal
 from constants import NUM_ROWS, NUM_COLS, STARTING_POSITION_OF_AGENT, GOAL_POSITION_OF_AGENT, INF
 
 backtrack_size = 6
 
 final_discovered_maze = Maze(NUM_COLS, NUM_ROWS)
-compute_heuristics(final_discovered_maze, GOAL_POSITION_OF_AGENT, manhattan_distance)
+compute_heuristics(final_discovered_maze, GOAL_POSITION_OF_AGENT, manhattan_distance())
 
 values_of_probabilities = list()
 avg_trajectory_lengths = list()
@@ -58,8 +58,8 @@ for probability_of_having_block in np.linspace(0.00, 0.33, 11):
         for current_backtrack_size in range(backtrack_size):
             final_discovered_maze.reset_except_h()
             final_paths, total_explored_nodes, total_time_in_seconds = \
-                repeated_forward_astar_search(final_discovered_maze, maze_array, STARTING_POSITION_OF_AGENT,
-                                              GOAL_POSITION_OF_AGENT, backtrack_length=current_backtrack_size)
+                repeated_forward(final_discovered_maze, maze_array, STARTING_POSITION_OF_AGENT,
+                                 GOAL_POSITION_OF_AGENT, backtrack_length=current_backtrack_size)
 
             len_of_paths_travelled_by_repeated_forward_astar = 0
 
@@ -80,11 +80,11 @@ for probability_of_having_block in np.linspace(0.00, 0.33, 11):
     for current_backtrack_size in range(backtrack_size):
         avg_trajectory_lengths[current_backtrack_size].append(avg(trajectory_lengths[current_backtrack_size]))
         avg_computation_time[current_backtrack_size].append(avg(computation_time[current_backtrack_size]))
-        avg_num_cells_processed_by_repeated_astar[current_backtrack_size].append(avg(num_cells_processed_by_repeated_astar[current_backtrack_size]))
-
+        avg_num_cells_processed_by_repeated_astar[current_backtrack_size].append(
+            avg(num_cells_processed_by_repeated_astar[current_backtrack_size]))
 
 fig, axs = plt.subplots(2)
-title_font_size=10
+title_font_size = 10
 
 for current_backtrack_size in range(backtrack_size):
     axs[0].plot(values_of_probabilities, avg_trajectory_lengths[current_backtrack_size], label=current_backtrack_size)
