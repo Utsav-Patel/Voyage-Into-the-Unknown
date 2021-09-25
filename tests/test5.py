@@ -12,7 +12,7 @@ from constants import NUM_ROWS, NUM_COLS, STARTING_POSITION_OF_AGENT, GOAL_POSIT
 backtrack_size = 6
 
 final_discovered_maze = Maze(NUM_COLS, NUM_ROWS)
-compute_heuristics(final_discovered_maze, GOAL_POSITION_OF_AGENT, manhattan_distance())
+compute_heuristics(final_discovered_maze, GOAL_POSITION_OF_AGENT, manhattan_distance)
 
 values_of_probabilities = list()
 avg_trajectory_lengths = list()
