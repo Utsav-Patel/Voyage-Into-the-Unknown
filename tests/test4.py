@@ -78,8 +78,8 @@ for probability_of_having_block in values_of_probabilities:
             len_of_paths_travelled_by_repeated_forward_astar += len(path)
         len_of_paths_travelled_by_repeated_forward_astar -= len(final_paths)
 
-        if not is_field_of_view_explored:
-            len_of_paths_travelled_by_repeated_forward_astar += 2 * (len(final_paths) - 1)
+        # if not is_field_of_view_explored:
+        #     len_of_paths_travelled_by_repeated_forward_astar += 2 * (len(final_paths) - 1)
 
         distance_from_start_to_goal_on_discovered_grid = length_of_path_from_source_to_goal(
             create_maze_array_from_paths(final_paths, final_discovered_maze,

@@ -23,9 +23,9 @@ maze_for_chebyshev = Maze(NUM_COLS, NUM_ROWS)
 compute_heuristics(maze_for_chebyshev, GOAL_POSITION_OF_AGENT, chebyshev_distance)
 
 final_maze = Maze(NUM_COLS, NUM_ROWS)
-heuristic = 'manhattan'
+heuristic = 'chebyshev'
 factor = 2
-filename = heuristic + "_" + str(factor) + "_"
+filename = '_known_grid_' + heuristic + "_" + str(factor) + "_"
 
 for row in range(NUM_ROWS):
     for col in range(NUM_COLS):
@@ -41,7 +41,7 @@ for row in range(NUM_ROWS):
 start_value_of_probability = 0.0
 end_value_of_probability = 0.2
 num_uniform_samples = 101
-num_times_run_for_each_probability = 100
+num_times_run_for_each_probability = 500
 is_field_of_view_explored = True
 
 avg_trajectory_lengths = [list(), list()]
@@ -50,7 +50,7 @@ avg_shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridwor
 avg_num_cells_processed_by_repeated_astar = [list(), list()]
 avg_computation_time = [list(), list()]
 avg_ratio_of_computation_time = list()
-
+avg_ratio_num_cells_processed_by_repeated_astar = list()
 values_of_probabilities = np.linspace(start_value_of_probability, min(0.33, end_value_of_probability),
                                       num_uniform_samples)
 
@@ -60,7 +60,6 @@ def avg(lst: list):
 
 
 def compute_required_fields():
-    maze.reset_except_h()
 
     start_time = datetime.now()
     final_paths, total_explored_nodes = repeated_forward(maze, maze_array,
@@ -75,8 +74,8 @@ def compute_required_fields():
         len_of_paths_travelled_by_repeated_forward_astar += len(path)
     len_of_paths_travelled_by_repeated_forward_astar -= len(final_paths)
 
-    if not is_field_of_view_explored:
-        len_of_paths_travelled_by_repeated_forward_astar += 2 * (len(final_paths) - 1)
+    # if not is_field_of_view_explored:
+    #     len_of_paths_travelled_by_repeated_forward_astar += 2 * (len(final_paths) - 1)
 
     distance_from_start_to_goal_on_discovered_grid = length_of_path_from_source_to_goal(
         create_maze_array_from_paths(final_paths, maze,
@@ -98,6 +97,7 @@ for probability_of_having_block in values_of_probabilities:
     num_cells_processed_by_repeated_astar = [list(), list()]
     computation_time = [list(), list()]
     ratio_computation_time = list()
+    ratio_num_cells_processed_by_repeated_astar = list()
 
     run_num = 0
     while run_num < num_times_run_for_each_probability:
@@ -114,18 +114,21 @@ for probability_of_having_block in values_of_probabilities:
             if ind == 0:
                 if heuristic == 'manhattan':
                     maze = maze_for_manhattan
-                elif heuristic  == 'euclidean':
+                elif heuristic == 'euclidean':
                     maze = maze_for_euclidean
                 else:
                     maze = maze_for_chebyshev
             else:
                 maze = final_maze
-            # for row in range(NUM_ROWS):
-            #     for col in range(NUM_COLS):
-            #         if maze_array[row][col] == 1:
-            #             maze.maze[row][col].is_blocked = True
-            #         else:
-            #             maze.maze[row][col].is_blocked = False
+
+            maze.reset_except_h()
+
+            for row in range(NUM_ROWS):
+                for col in range(NUM_COLS):
+                    if maze_array[row][col] == 1:
+                        maze.maze[row][col].is_blocked = True
+                    else:
+                        maze.maze[row][col].is_blocked = False
 
             len_of_paths_travelled_by_repeated_forward_astar, \
             length_of_trajectory_by_shortest_path_in_final_discovered_gridworld_val, \
@@ -142,15 +145,19 @@ for probability_of_having_block in values_of_probabilities:
             computation_time[ind].append(total_seconds)
 
         ratio_computation_time.append(computation_time[0][-1] / computation_time[1][-1])
+        ratio_num_cells_processed_by_repeated_astar.append(num_cells_processed_by_repeated_astar[0][-1] /
+                                                           num_cells_processed_by_repeated_astar[1][-1])
 
     for ind in range(2):
         avg_trajectory_lengths[ind].append(avg(trajectory_lengths[ind]))
-        avg_length_of_trajectory_by_shortest_path_in_final_discovered_gridworld[ind].append(avg(length_of_trajectory_by_shortest_path_in_final_discovered_gridworld[ind]))
-        avg_shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridworld[ind].append(avg(shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridworld[ind]))
+        avg_length_of_trajectory_by_shortest_path_in_final_discovered_gridworld[ind].append(
+            avg(length_of_trajectory_by_shortest_path_in_final_discovered_gridworld[ind]))
+        avg_shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridworld[ind].append(
+            avg(shortest_path_in_final_discovered_gridworld_by_shortest_path_in_full_gridworld[ind]))
         avg_num_cells_processed_by_repeated_astar[ind].append(avg(num_cells_processed_by_repeated_astar[ind]))
         avg_computation_time[ind].append(avg(computation_time[ind]))
     avg_ratio_of_computation_time.append(avg(ratio_computation_time))
-
+    avg_ratio_num_cells_processed_by_repeated_astar.append(avg(ratio_num_cells_processed_by_repeated_astar))
 
 legends = ['admissible' + '_' + heuristic, 'inadmissible' + '_' + heuristic]
 print('Ending running this file at', datetime.now().strftime("%m-%d-%Y %H-%M-%S"))
@@ -171,13 +178,16 @@ def multiple_plot(x, y, title, xlabel, ylabel, savefig_name):
 
 multiple_plot(values_of_probabilities * 100, avg_trajectory_lengths, 'Length of Trajectory', 'Density (in %)',
               'Length of Trajectory',
-              'problem_9_' + filename + "trajectory_length_" + str(datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
+              'problem_9_' + filename + "trajectory_length_" + str(
+                  datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
 multiple_plot(values_of_probabilities * 100, avg_num_cells_processed_by_repeated_astar, 'Total Explored Nodes',
               'Density (in %)', 'total explored nodes',
-              'problem_9_' + filename + "total_explored_nodes_" + str(datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
+              'problem_9_' + filename + "total_explored_nodes_" + str(
+                  datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
 multiple_plot(values_of_probabilities * 100, avg_computation_time, 'Total Computation time', 'Density (in %)',
               'Computation time (in seconds)',
-              'problem_9_' + filename + "computation_time_" + str(datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
+              'problem_9_' + filename + "computation_time_" + str(
+                  datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
 
 
 def single_plot(x, y, title, xlabel, ylabel, savefig_name):
@@ -191,5 +201,11 @@ def single_plot(x, y, title, xlabel, ylabel, savefig_name):
     plt.show()
 
 
-single_plot(values_of_probabilities * 100, avg_ratio_of_computation_time, 'Density vs Average ratio of computation time (admissible / inadmissible)',
-            'Density (in %)', 'Ratio of computation time', filename + str(datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
+single_plot(values_of_probabilities * 100, avg_ratio_of_computation_time,
+            'Density vs Average ratio of computation time (admissible / inadmissible)',
+            'Density (in %)', 'Ratio of computation time',
+            'problem_9_' + filename + str(datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
+single_plot(values_of_probabilities * 100, avg_ratio_num_cells_processed_by_repeated_astar,
+            'Density vs Average ratio of number of cell processed (admissible / inadmissible)',
+            'Density (in %)', 'Ratio of number of cells processed',
+            'problem_9_' + filename + str(datetime.now().strftime("%m-%d-%Y %H-%M-%S")) + '.png')
