@@ -1,6 +1,6 @@
 """
 This file uses the general implementation of the Repeated Forward A* Algorithm and runs the code for the
-1st problem (Implementation).
+1st problem (Implementation). Also, we checked our latest update on any helper function using this file.
 """
 
 from src.helper import generate_grid_manually, repeated_forward, compute_heuristics, h_function

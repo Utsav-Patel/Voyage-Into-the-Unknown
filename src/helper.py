@@ -4,6 +4,18 @@ from src.Maze import Maze
 from queue import Queue, PriorityQueue
 from constants import NUM_COLS, NUM_ROWS, INF, STARTING_POSITION_OF_AGENT, GOAL_POSITION_OF_AGENT, X, Y
 from sortedcontainers import SortedSet
+import matplotlib.pyplot as plt
+
+
+def avg(lst: list):
+    """
+    This function computes average of the given list. If the length of list is zero, it will return zero.
+    :param lst: list for which you want to compute average
+    :return: average of the given list
+    """
+    if len(lst) == 0:
+        return 0
+    return sum(lst) / len(lst)
 
 
 def generate_grid_manually():
@@ -47,6 +59,20 @@ def generate_grid_with_probability_p(p):
     return randomly_generated_array
 
 
+def compute_trajectory_length_from_path(paths: list):
+    """
+    This function will compute the trajectory length from the list of paths returned by any repeated forward algorithm
+    :param paths: list of paths
+    :return: trajectory length
+    """
+
+    trajectory_length = 0
+    for path in paths:
+        trajectory_length += len(path)
+    trajectory_length -= len(paths)
+    return trajectory_length
+
+
 def length_of_path_from_source_to_goal(maze_array: np.array, start_pos: tuple, goal_pos: tuple):
     """
     This function will return length of path from source to goal if it exists otherwise it will return INF
@@ -78,7 +104,7 @@ def length_of_path_from_source_to_goal(maze_array: np.array, start_pos: tuple, g
         for ind in range(len(X)):
             neighbour = (current_node[0] + X[ind], current_node[1] + Y[ind])
             if check(neighbour, NUM_COLS, NUM_ROWS) and \
-                    (distance_array[neighbour[0]][neighbour[1]] > distance_array[current_node[0]][current_node[1]] + 1) \
+                    (distance_array[neighbour[0]][neighbour[1]] > distance_array[current_node[0]][current_node[1]] +1) \
                     and (maze_array[neighbour[0]][neighbour[1]] == 0):
                 q.put(neighbour)
                 distance_array[neighbour[0]][neighbour[1]] = distance_array[current_node[0]][current_node[1]] + 1
@@ -496,3 +522,48 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
 
             final_paths.append(current_path)
             start_pos = cur_pos
+
+
+def single_plot(x, y, title, xlabel, ylabel, savefig_name, fontsize: int = 10):
+    """
+    This function is used to plot a single plot
+    :param x: X axis list
+    :param y: Y axis list
+    :param title: title of the plot
+    :param xlabel: x-label of the plot
+    :param ylabel: y-label of the plot
+    :param savefig_name: name of the figure which you want to use save
+    :param fontsize: change size of the all font (title, x-label, and y-label)
+    :return:
+    """
+    fig, axs = plt.subplots()
+    axs.plot(x, y, marker='.', ms=10.0, c='blue', mfc='red')
+    axs.set_title(title, fontsize=fontsize)
+    axs.set_xlabel(xlabel, fontsize=fontsize)
+    axs.set_ylabel(ylabel, fontsize=fontsize)
+    plt.savefig(savefig_name)
+    plt.show()
+
+
+def multiple_plot(x, y, title, xlabel, ylabel, savefig_name, legends, fontsize: int = 10):
+    """
+    This function is used to add multiple plots on y axis
+    :param x: X axis list
+    :param y: Y axis list of list
+    :param title: title of the plot
+    :param xlabel: x-label of the plot
+    :param ylabel: y-label of the plot
+    :param savefig_name: name of the figure which you want to use save
+    :param legends: add legends to this multiple plots
+    :param fontsize: change size of the all font (title, x-label, and y-label)
+    :return:
+    """
+    fig, axs = plt.subplots()
+    for array in y:
+        axs.plot(x, array, marker='.', ms=10.0, mfc='red')
+    axs.legend(legends)
+    axs.set_title(title, fontsize=fontsize)
+    axs.set_xlabel(xlabel, fontsize=fontsize)
+    axs.set_ylabel(ylabel, fontsize=fontsize)
+    plt.savefig(savefig_name)
+    plt.show()
