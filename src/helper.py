@@ -12,13 +12,21 @@ def generate_grid_manually():
     :return: Manually generated numpy array.
     """
     array = np.zeros((8, 8))
-    array[0][7] = 1
+    # array[0][7] = 1
     array[1][6] = 1
-    array[2][5] = 1
-    array[3][5] = 1
-    array[4][5] = 1
-    array[5][5] = 1
-    array[6][5] = 1
+    array[2][6] = 1
+    array[3][6] = 1
+    array[4][6] = 1
+    array[5][6] = 1
+    array[6][6] = 1
+    array[6][7] = 1
+
+    array[1][6] = 1
+    array[1][5] = 1
+    array[1][4] = 1
+    array[1][3] = 1
+    array[1][2] = 1
+    array[1][1] = 1
     # array[7][5] = 1
     return array
 
@@ -378,7 +386,8 @@ def bfs_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
 
 
 def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_pos: tuple,
-                     is_field_of_view_explored: bool = True, backtrack_length: int = 0, algorithm: str = 'astar'):
+                     is_field_of_view_explored: bool = True, backtrack_length: int = 0, algorithm: str = 'astar',
+                     is_backtrack_strategy2_on: bool = False):
     """
     This is the repeated forward function which can be used with any algorithm (astar or bfs). This function will
     repeatedly call corresponding algorithm function until it reaches goal or finds out there is no path till goal.
@@ -389,6 +398,7 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
     :param is_field_of_view_explored: It will explore field of view if this attribute is true otherwise it won't.
     :param backtrack_length: How many times you want to backtrack for each run.
     :param algorithm: Either A* or BFS
+    :param is_backtrack_strategy2_on: If you want to run strategy 2, this attribute should be set to true
     :return: This function will return final paths on which agent moved to reach goal or empty list if agent can't find
             path to goal. Second is total number of processed nodes while running the algorithm.
     """
@@ -431,9 +441,14 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
         cur_pos = start_pos
 
         current_path = [cur_pos]
+        last_cell_which_is_not_in_dead_end = (-1, -1)
+
         # Iterating from start_pos to goal_pos if we won't get any blocks in between otherwise we are terminating the
         # iteration.
         while cur_pos != children[cur_pos]:
+
+            if is_backtrack_strategy2_on:
+                path_exist_from_the_last_point = 0
 
             # Explore the field of view and update the blocked nodes if there's any in the path.
             if is_field_of_view_explored:
@@ -441,6 +456,14 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
                     neighbour = (cur_pos[0] + X[ind], cur_pos[1] + Y[ind])
                     if (check(neighbour, NUM_COLS, NUM_ROWS)) and (maze_array[neighbour[0]][neighbour[1]] == 1):
                         maze.maze[neighbour[0]][neighbour[1]].is_blocked = True
+                    if is_backtrack_strategy2_on and (check(neighbour, NUM_COLS, NUM_ROWS)) and \
+                            (children[cur_pos] != neighbour) and (parents[cur_pos] != neighbour) and \
+                            (maze_array[neighbour[0]][neighbour[1]] == 0):
+                        path_exist_from_the_last_point += 1
+
+            if is_backtrack_strategy2_on:
+                if path_exist_from_the_last_point > 0:
+                    last_cell_which_is_not_in_dead_end = cur_pos
 
             # If we encounter any block in the path, we have to terminate the iteration
             if maze_array[children[cur_pos][0]][children[cur_pos][1]] == 1:
@@ -463,6 +486,13 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
                 cur_pos = parents[cur_pos]
                 current_path.append(cur_pos)
                 num_backtrack -= 1
+
+            if is_backtrack_strategy2_on:
+                if last_cell_which_is_not_in_dead_end == (-1, -1):
+                    last_cell_which_is_not_in_dead_end = cur_pos
+                while cur_pos != last_cell_which_is_not_in_dead_end:
+                    cur_pos = parents[cur_pos]
+                    current_path.append(cur_pos)
 
             final_paths.append(current_path)
             start_pos = cur_pos
