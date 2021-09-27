@@ -23,23 +23,14 @@ def generate_grid_manually():
     This is the function to generate grid manually. This is helpful for the initial testing and problem 1.
     :return: Manually generated numpy array.
     """
-    array = np.zeros((8, 8))
-    # array[0][7] = 1
-    array[1][6] = 1
-    array[2][6] = 1
-    array[3][6] = 1
-    array[4][6] = 1
-    array[5][6] = 1
-    array[6][6] = 1
-    array[6][7] = 1
+    array = np.zeros((5, 5))
 
-    array[1][6] = 1
-    array[1][5] = 1
-    array[1][4] = 1
-    array[1][3] = 1
-    array[1][2] = 1
     array[1][1] = 1
-    # array[7][5] = 1
+    array[1][2] = 1
+    array[1][3] = 1
+    array[2][3] = 1
+    array[3][3] = 1
+    array[3][4] = 1
     return array
 
 
@@ -104,7 +95,7 @@ def length_of_path_from_source_to_goal(maze_array: np.array, start_pos: tuple, g
         for ind in range(len(X)):
             neighbour = (current_node[0] + X[ind], current_node[1] + Y[ind])
             if check(neighbour, NUM_COLS, NUM_ROWS) and \
-                    (distance_array[neighbour[0]][neighbour[1]] > distance_array[current_node[0]][current_node[1]] +1) \
+                    (distance_array[neighbour[0]][neighbour[1]] > distance_array[current_node[0]][current_node[1]] + 1) \
                     and (maze_array[neighbour[0]][neighbour[1]] == 0):
                 q.put(neighbour)
                 distance_array[neighbour[0]][neighbour[1]] = distance_array[current_node[0]][current_node[1]] + 1
@@ -413,7 +404,7 @@ def bfs_search(maze: Maze, start_pos: tuple, goal_pos: tuple):
 
 def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_pos: tuple,
                      is_field_of_view_explored: bool = True, backtrack_length: int = 0, algorithm: str = 'astar',
-                     is_backtrack_strategy2_on: bool = False):
+                     is_backtrack_strategy_on: bool = False):
     """
     This is the repeated forward function which can be used with any algorithm (astar or bfs). This function will
     repeatedly call corresponding algorithm function until it reaches goal or finds out there is no path till goal.
@@ -424,7 +415,7 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
     :param is_field_of_view_explored: It will explore field of view if this attribute is true otherwise it won't.
     :param backtrack_length: How many times you want to backtrack for each run.
     :param algorithm: Either A* or BFS
-    :param is_backtrack_strategy2_on: If you want to run strategy 2, this attribute should be set to true
+    :param is_backtrack_strategy_on: If you want to run strategy 2, this attribute should be set to true
     :return: This function will return final paths on which agent moved to reach goal or empty list if agent can't find
             path to goal. Second is total number of processed nodes while running the algorithm.
     """
@@ -432,6 +423,7 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
     # defining the following two attributes to find which would be useful to return values
     final_paths = list()
     total_explored_nodes = 0
+    num_backtracks = 0
 
     # Running the while loop until we will get a path from start_pos to goal_pos or we have figured out there is no path
     # from start_pos to goal_pos
@@ -449,7 +441,7 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
 
         # If goal_pos doesn't exist in parents which means path is not available so returning empty list.
         if goal_pos not in parents:
-            return list(), total_explored_nodes
+            return list(), total_explored_nodes, num_backtracks
 
         # parents contains parent of each node through path from start_pos to goal_pos. To store path from start_pos to
         # goal_pos, we need to store child of each node starting from start_pos.
@@ -467,13 +459,13 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
         cur_pos = start_pos
 
         current_path = [cur_pos]
-        last_cell_which_is_not_in_dead_end = (-1, -1)
+        last_cell_which_is_not_in_dead_end = cur_pos
 
         # Iterating from start_pos to goal_pos if we won't get any blocks in between otherwise we are terminating the
         # iteration.
         while cur_pos != children[cur_pos]:
 
-            if is_backtrack_strategy2_on:
+            if is_backtrack_strategy_on:
                 path_exist_from_the_last_point = 0
 
             # Explore the field of view and update the blocked nodes if there's any in the path.
@@ -482,12 +474,19 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
                     neighbour = (cur_pos[0] + X[ind], cur_pos[1] + Y[ind])
                     if (check(neighbour, NUM_COLS, NUM_ROWS)) and (maze_array[neighbour[0]][neighbour[1]] == 1):
                         maze.maze[neighbour[0]][neighbour[1]].is_blocked = True
-                    if is_backtrack_strategy2_on and (check(neighbour, NUM_COLS, NUM_ROWS)) and \
+
+                    # Here, we are finding whether the current node is a part of the dead end or not. If there is a path
+                    # exists other than its child and parent, then this node should not be part of dead end because
+                    # there is another path available which you can explore.
+                    if is_backtrack_strategy_on and (check(neighbour, NUM_COLS, NUM_ROWS)) and \
                             (children[cur_pos] != neighbour) and (parents[cur_pos] != neighbour) and \
                             (maze_array[neighbour[0]][neighbour[1]] == 0):
                         path_exist_from_the_last_point += 1
 
-            if is_backtrack_strategy2_on:
+            if is_backtrack_strategy_on:
+
+                # If we can find such a node which we can explore later using current node, then this node should not be
+                # part of the dead end path.
                 if path_exist_from_the_last_point > 0:
                     last_cell_which_is_not_in_dead_end = cur_pos
 
@@ -500,7 +499,7 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
         # If we are able to find the goal state, we should return the path and total explored nodes.
         if cur_pos == goal_pos:
             final_paths.append(current_path)
-            return final_paths, total_explored_nodes
+            return final_paths, total_explored_nodes, num_backtracks
         else:
 
             # Change the start node to last unblocked node and backtrack if it is set to any positive integer.
@@ -513,10 +512,13 @@ def repeated_forward(maze: Maze, maze_array: np.array, start_pos: tuple, goal_po
                 current_path.append(cur_pos)
                 num_backtrack -= 1
 
-            if is_backtrack_strategy2_on:
-                if last_cell_which_is_not_in_dead_end == (-1, -1):
-                    last_cell_which_is_not_in_dead_end = cur_pos
+            if is_backtrack_strategy_on:
+
+                # We keep backtracking cell until we reached a cell from where we can explore a new path. Also, we are
+                # manually blocking those dead end nodes because they are not useful anymore.
                 while cur_pos != last_cell_which_is_not_in_dead_end:
+                    num_backtracks += 1
+                    maze.maze[cur_pos[0]][cur_pos[1]].is_blocked = True
                     cur_pos = parents[cur_pos]
                     current_path.append(cur_pos)
 

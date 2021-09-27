@@ -116,7 +116,7 @@ for probability_of_having_block in values_of_probabilities:
                                                                                       STARTING_POSITION_OF_AGENT,
                                                                                       GOAL_POSITION_OF_AGENT)
 
-        # Cheking whether maze is solvable or not
+        # Checking whether maze is solvable or not
         if distance_from_start_to_goal_on_full_grid >= INF:
             continue
 
