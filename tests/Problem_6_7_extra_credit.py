@@ -89,7 +89,7 @@ for probability_of_having_block in values_of_probabilities:
                                                              STARTING_POSITION_OF_AGENT,
                                                              GOAL_POSITION_OF_AGENT,
                                                              is_field_of_view_explored=is_field_of_view_explored,
-                                                             algorithm=algorithm)
+                                                             algorithm=algorithm)[:2]
 
         # Compute trajectory length
         len_of_paths_travelled_by_repeated_forward_astar = compute_trajectory_length_from_path(final_paths)

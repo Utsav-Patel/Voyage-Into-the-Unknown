@@ -71,7 +71,7 @@ def compute_required_fields():
     start_time = datetime.now()
     final_paths, total_explored_nodes = repeated_forward(maze, maze_array,
                                                          STARTING_POSITION_OF_AGENT,
-                                                         GOAL_POSITION_OF_AGENT)
+                                                         GOAL_POSITION_OF_AGENT)[:2]
     end_time = datetime.now()
     total_seconds = (end_time - start_time).total_seconds()
 
