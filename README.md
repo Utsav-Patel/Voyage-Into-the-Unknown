@@ -26,3 +26,36 @@ We first tested how many grids were solvable (agent found a valid path from star
 <p align="center">
 	<img src="/images/Density_vs_Solvability.png">
 </p>
+
+As we can see, most grid are solvable when probability of being blocked lesser than 0.33 and unsolvable when probability is higher than that.
+
+
+##### Comparing different Heuristics with A* algorithm - 
+
+We wanted to see which heuristic; when used with the A star algorithm gave us the best results. We tested Euclidean, Manhattan and Chebychev heuristics and got the following
+results -
+
+<p align="center">
+	<img src="/images/combine_computation_time.png">
+</p>
+
+
+As we can see manhattan distance performed extremely well in terms of computation time.
+
+##### Comapring 'blindfolded agent' with normal agent
+
+Here we created another agent that was blindfolded (it can only view blocks that are directly in its path unlike the normal agent that can view blocks in four cardinal directions)
+when comparing their trajectory lengths and average number of cells they have to process, we get the following results - 
+
+<p align="left">
+	<img src="/images/6_Average_Trajectory_Length.png">
+</p>
+<p align="right">
+	<img src="/images/7_Average_Trajectory_Length.png">
+</p>
+<p align="left">
+	<img src="/images/6_avg_number_of_cells_processed.png">
+</p>
+<p align="right">
+	<img src="/images/7_avg_number_of_cells_processed.png">
+</p>

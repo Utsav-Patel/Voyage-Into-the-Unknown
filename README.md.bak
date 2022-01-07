@@ -19,10 +19,27 @@ The agent will plan a path to the goal using its current knowledge of the grid a
 re-plan a path using all the knowledge it has gained while traversing the maze. The agent planned this path by using the A star algorithm.
 
 
-##### Solvability vs Probability of blocks -
+##### <u>Solvability vs Probability of blocks -</u>
 
 We first tested how many grids were solvable (agent found a valid path from start to goal) versus the probability of each cell being blocked. We got the following results - 
 
 <p align="center">
-	<img src="/images/Density_vs_Solvability.png" width="1000" height="400">
+	<img src="/images/Density_vs_Solvability.png">
 </p>
+
+As we can see, most grid are solvable when probability of being blocked lesser than 0.33 and unsolvable when probability is higher than that.
+
+
+##### Comparing different Heuristics with A* algorithm - 
+
+We wanted to see which heuristic; when used with the A star algorithm gave us the best results. We tested Euclidean, Manhattan and Chebychev heuristics and got the following
+results -
+
+<p align="center">
+	<img src="/images/combine_computation_time.png">
+</p>
+
+
+As we can see manhattan distance performed extremely well in terms of computation time.
+
+#####
