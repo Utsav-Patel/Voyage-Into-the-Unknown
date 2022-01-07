@@ -11,5 +11,5 @@ the agent reach position (100,100). The agent does not know which cells in the g
 its four cardinal neighbors. A sample grid with the agents path will look like this -
 
 <p align="center">
-	<img src="/images/First_Path.PNG" width="200" height="200" class = "center">
+	<img src="/images/First_Path.PNG" width="200" height="200">
 </p>
