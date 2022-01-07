@@ -47,16 +47,11 @@ As we can see manhattan distance performed extremely well in terms of computatio
 Here we created another agent that was blindfolded (it can only view blocks that are directly in its path unlike the normal agent that can view blocks in four cardinal directions)
 when comparing their trajectory lengths and average number of cells they have to process, we get the following results - 
 
-<div>
-	<img src="/images/6_Average_Trajectory_Length.png" width="400" height="300" align = "left">
-	<p align="left"> Text !! </p>
-</div>
-<p align="right">
-	<img src="/images/7_Average_Trajectory_Length.png" width="400" height="300">
-</p>
-<p align="left">
-	<img src="/images/6_avg_number_of_cells_processed.png" width="400" height="300">
-</p>
-<p align="right">
-	<img src="/images/7_avg_number_of_cells_processed.png" width="400" height="300">
-</p>
+
+<img src="/images/6_Average_Trajectory_Length.png" width="400" height="300" align = "left">
+
+<img src="/images/7_Average_Trajectory_Length.png" width="400" height="300" align = "right">
+
+<img src="/images/6_avg_number_of_cells_processed.png" width="400" height="300" align = "left">
+
+<img src="/images/7_avg_number_of_cells_processed.png" width="400" height="300" align = "right">
