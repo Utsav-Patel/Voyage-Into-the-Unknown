@@ -48,14 +48,14 @@ Here we created another agent that was blindfolded (it can only view blocks that
 when comparing their trajectory lengths and average number of cells they have to process, we get the following results - 
 
 <p align="left">
-	<img src="/images/6_Average_Trajectory_Length.png">
+	<img src="/images/6_Average_Trajectory_Length.png" width="400" height="300">
 </p>
 <p align="right">
-	<img src="/images/7_Average_Trajectory_Length.png">
+	<img src="/images/7_Average_Trajectory_Length.png" width="400" height="300">
 </p>
 <p align="left">
-	<img src="/images/6_avg_number_of_cells_processed.png">
+	<img src="/images/6_avg_number_of_cells_processed.png" width="400" height="300">
 </p>
 <p align="right">
-	<img src="/images/7_avg_number_of_cells_processed.png">
+	<img src="/images/7_avg_number_of_cells_processed.png" width="400" height="300">
 </p>
