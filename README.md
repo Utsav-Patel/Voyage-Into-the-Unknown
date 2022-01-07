@@ -24,5 +24,5 @@ re-plan a path using all the knowledge it has gained while traversing the maze. 
 We first tested how many grids were solvable (agent found a valid path from start to goal) versus the probability of each cell being blocked. We got the following results - 
 
 <p align="center">
-	<img src="/images/Density_vs_Solvability.png" width="400" height="200">
+	<img src="/images/Density_vs_Solvability.png" width="1000" height="600">
 </p>
