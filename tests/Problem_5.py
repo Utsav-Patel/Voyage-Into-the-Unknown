@@ -69,7 +69,7 @@ for probability_of_having_block in list_of_probability_values:
             # Call to repeated forward A*
             final_paths, total_explored_nodes = repeated_forward(mazes[maze_index], maze_array,
                                                                  STARTING_POSITION_OF_AGENT,
-                                                                 GOAL_POSITION_OF_AGENT)
+                                                                 GOAL_POSITION_OF_AGENT)[:2]
 
             end_time = datetime.now()
 
