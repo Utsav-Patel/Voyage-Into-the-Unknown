@@ -48,7 +48,7 @@ Here we created another agent that was blindfolded (it can only view blocks that
 when comparing their trajectory lengths and average number of cells they have to process, we get the following results -  The normal agent is on the left and the blindfolded agent
 is on the right.
 
-
+<div>
 <img src="/images/6_Average_Trajectory_Length.png" width="350" height="250" align = "left">
 
 <img src="/images/7_Average_Trajectory_Length.png" width="350" height="250" align = "right">
@@ -56,7 +56,7 @@ is on the right.
 <img src="/images/6_avg_number_of_cells_processed.png" width="350" height="250" align = "left">
 
 <img src="/images/7_avg_number_of_cells_processed.png" width="350" height="250" align = "right">
-
+</div>
 
 
 As we can see, the normal agent performed significantly better than the blindfolded agent which was expected. 

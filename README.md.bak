@@ -57,6 +57,8 @@ is on the right.
 
 <img src="/images/7_avg_number_of_cells_processed.png" width="350" height="250" align = "right">
 
+
+
 As we can see, the normal agent performed significantly better than the blindfolded agent which was expected. 
 
 ##### Using Inadmissible Heuristics to speed up A* -
@@ -76,6 +78,7 @@ Here we tested using BFS instead of the normal A star algorithm and got the foll
 <img src="/images/6_avg_number_of_cells_processed.png" width="350" height="250" align = "left">
 
 <img src="/images/extra_credit_6_avg_number_of_cells_processed.png" width="350" height="250" align = "right">
+
 
 A star and BFS gave us the same results in terms of final path length, but BFS had to explore exponentially more cells than A star and thus takes exponentially more time to run.
 
