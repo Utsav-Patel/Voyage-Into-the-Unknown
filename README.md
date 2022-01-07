@@ -49,7 +49,7 @@ when comparing their trajectory lengths and average number of cells they have to
 
 <figure>
   <img src="/images/6_Average_Trajectory_Length.png" width="400" height="300" align = "left">
-  <figcaption> Your text </figcaption>
+  <p align="left"> Text !! </p>
 </figure>
 <p align="right">
 	<img src="/images/7_Average_Trajectory_Length.png" width="400" height="300">
